@@ -3,233 +3,116 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-class TestController extends Controller
-{
-
-    function req()
-    {
-    	// $url = "http://server.1905.com/goods?id=8888";
-    	// $response = file_get_contents($url);
-    	// echo $response;
-        echo '<pre>';print_r($_GET);echo '</pre>'; 
-    }
-
-    function encrypt(){
-    	$data=$_GET['data'];
-    	echo "原文: ".$data;echo '</br>';
-    	$method ='AES-256-CBC';
-    	$key='1905api';
-    	$iv='WUSD8796IDjhkchd';
-    	$enc_data=openssl_encrypt($data, $method, $key,OPENSSL_RAW_DATA,$iv);
-    	echo "加密后密文: ".$enc_data;echo '</br>';
-    	echo '<hr>';
-    	echo '解密: ';echo '</br>';
-        //发送加密数据
-        $url="http://server.1905.com/decrypt?data=".urlencode(base64_encode($enc_data));
-        echo $url;echo '</br>';
-        $response=file_get_contents($url);
-        echo $response;
-        
-    	//解密
-    	// $dec_data = openssl_decrypt($enc_data, $method, $key,OPENSSL_RAW_DATA,$iv);
-    	// echo $dec_data;
-    }
-
-    function encrypt2(){
-        $data=[
-            'name' => 'liuwei',
-            'email' => '2841732297@qq.com',
-            'age' => 17
-        ];
-
-        echo '<pre>';print_r($data);echo '</pre>';
-        $json_str=json_encode($data);
-        echo "原文: ".$json_str;echo '</br>';
-
-        //加密
-        $method ='AES-256-CBC';
-        $key='1905api';
-        $iv='WUSD8796IDjhkchd';
-
-        $enc_data=openssl_encrypt($json_str, $method, $key,OPENSSL_RAW_DATA,$iv);
-        echo "加密后密文: ".$enc_data;echo '</br>';
-        
-        //base64encode 密文
-        $base64_str = base64_encode($enc_data);
-        echo "base64_str: ".$base64_str;echo '</br>';
-
-        //url_encode
-        $url_encode_str = urlencode($base64_str);
-        echo '$url_encode_str : '.$url_encode_str;echo '</br>';
-
-        //发送加密数据
-        $url="http://server.1905.com/decrypt2?data=".$url_encode_str;
-        echo $url;echo '</br>';
-        $response=file_get_contents($url);
-        echo $response;
-    }
-
-    function rsa1(){
-        $priv_key=file_get_contents(storage_path('keys/priv.key'));
-        echo $priv_key;echo '<hr>';
-
-        $data="hello world";
-        echo "待加密数据: ".$data;echo '</br>';
-
-        openssl_private_encrypt($data, $enc_data,$priv_key);
-        var_dump($enc_data);
-        echo '<hr>';
-        //将密文发送至对方
-        $base64_encode_str=base64_encode($enc_data);  //密文经 base64 编码
-        echo $base64_encode_str;echo '<hr>';
-        $url='http://server.1905.com/rsadescypt1?data='.urlencode($base64_encode_str);
-
-        echo $url;die;
-        file_get_contents($url);  //发送请求
-
-        //解密
-        // $pub_key=file_get_contents(storage_path('keys/pub.key'));
-        // openssl_public_decrypt($enc_data, $dec_data, $pub_key);
-        // echo "解密数据: ".$dec_data;
-
-    }
-
-    function curl1(){
-        $url='http://server.1905.com/test/curl1?name=liuwei&email=liuwei@qq.com';
-        echo $url;echo '</br>';
-        //初始化
-        $ch=curl_init();
-        //设置参数
-        curl_setopt($ch, CURLOPT_URL, $url);
-        //执行会话 释放资源
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-    function curl2(){
-        $url='http://server.1905.com/test/curl2';
-        $data=[
-            'name'=>'liuwei',
-            'email'=>'liuwei@qq.com'
-        ];
-        echo $url;echo '</br>';
-
-        $ch=curl_init();
-        
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-    function curl3(){
-        $url='http://server.1905.com/test/curl3';
-        $data=[
-            'img1'=>new \CURLFile('gsl.jpg')
-        ];
-        //echo $url;echo '</br>';
-        //初始化
-        $ch=curl_init();
-        //设置参数
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        //执行会话 释放资源
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-    function curl4(){
-        $url='http://server.1905.com/test/curl4';
-        $token=Str::random(20);
-        $data=[
-            'name'=>'liuwei',
-            'email'=>'liuwei@qq.com',
-            'age'=>17
-        ];
-        $json_str=json_encode($data);
-        echo "待发送数据 json: ".$json_str;
-        //初始化
-        $ch=curl_init();
-        //设置参数
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $json_str);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,[
-            'Content-Type:text/plain',
-            'token: '.$token
-            ]);
-        //执行会话 释放资源
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-    function sign1(){
-        $params = [
-            'name' =>"liuwei",
-            'email' =>"liuwei@qq.com",
-            'amount'=>5000,
-            'data'=>time()
-        ];
-
-        echo '<pre>';print_r($params);echo '</pre>';
-        //将参数字典序排序
-        ksort($params);
-        echo '<pre>';print_r($params);echo '</pre>';echo '<hr>';
-        //拼接字符串
-        $str="";
-        foreach($params as $k=>$v){
-            $str .= $k . '=' . $v . '&';
+use App\UserModel;
+class TestController extends Controller{
+    function reg(Request $request){
+        //echo '<pre>';print_r($_POST);echo '</pre>';
+        $pass1=request()->input('pass1');
+        $pass2=request()->input('pass2');
+        //验证两次输入的密码
+        if($pass1!=$pass2){
+            echo "两次输入的密码不一致";die;
         }
-        $str=rtrim($str,'&');
-        echo $str;echo '<hr>';
-
-        //使用 私钥进行签名
-        $priv_key=file_get_contents(storage_path('keys/priv.key'));
-        openssl_sign($str,$signature,$priv_key,OPENSSL_ALGO_SHA256);
-        //echo openssl_error_string();die;
-        var_dump($signature);
-        echo '</br>';
-        //base64编码签名
-        $sign =base64_encode($signature);
-        echo '<hr>';
-        echo "签名: ".$sign;echo '<hr>';
-        $url="http://api.1905.com/sign1?".$str.'&sign='. urlencode($sign);
-        echo $url;
-
+        $user_name=request()->input('user_name');
+        $user_email=request()->input('user_email');
+        //验证 用户名 email 是否已被注册
+        $u=UserModel::where(['user_name'=>$user_name])->first();
+        if($u){
+            $response = [
+                'error' => 500002,
+                'msg' => '用户名已被使用'
+            ];
+            die(json_encode($response,JSON_UNESCAPED_UNICODE));
+        }
+        //验证email
+        $u=UserModel::where(['user_email'=>$user_email])->first();
+        if($u){
+            $response = [
+                'error' => 500003,
+                'msg' => 'Email已被使用'
+            ];
+            die(json_encode($response,JSON_UNESCAPED_UNICODE)); 
+        }
+        //生成密码
+        $user_pwd=password_hash($pass1,PASSWORD_BCRYPT);
+        //入库
+        $user_info = [
+            'user_email' => $user_email,
+            'user_name' => $user_name,
+            'user_pwd' => $user_pwd
+        ];
+        $uid = UserModel::insertGetId($user_info);
+        if($uid){
+            $response = [
+                'error' => 0,
+                'msg' => 'ok'
+            ];
+        }else{
+            $response = [
+                'error' => 500001,
+                'msg' => '服务器内部错误,请稍后再试'
+            ];
+        }
+        die(json_encode($response));
     }
 
-    function sign2(){
-        $sign_token='abcdefg';
-        $params = [
-            'order_id'=>mt_rand(111111,999999),
-            'amount'=>9999,
-            'uid'=>100,
-            'data'=>time()
-        ];
-        //字典序排序
-        ksort($params);
-        //拼接字符串
-        $str="";
-        foreach($params as $k=>$v){
-            $str .= $k . '=' . $v . '&';
+    function login(Request $request){
+        $value=request()->input('user_name');
+        $user_pwd=request()->input('user_pwd');
+        //按name找记录
+        $u1=UserModel::where(['user_name'=>$value])->first();
+        $u2=UserModel::where(['user_email'=>$value])->first();
+        
+        if($u1==NULL&&$u2==NULL){
+            $response = [
+                'error' => 400004,
+                'msg' => '用户不存在'
+            ];
+            return $response;
         }
-        $str=rtrim($str,'&');
-        echo $str;
+        if($u1){//使用用户名登陆
+            if(password_verify($user_pwd,$u1->user_pwd)){
+                $user_id=$u1->user_id; 
+           }else{
+                $response = [
+                     'error' => 400003,
+                     'msg' => 'password wrong'
+                ];
+                return $response;
+           }
+        }
+        if($u2){//使用email登陆
+            if(password_verify($user_pwd,$u2->user_pwd)){
+                $user_id=$u2->user_id; 
+           }else{
+                $response = [
+                     'error' => 400003,
+                     'msg' => 'password wrong'
+                ];
+                return $response;
+           }
+        }
+        $token=$this->getToken($user_id);
+        $response = [
+            'error' => 0,
+            'msg' => 'ok',
+            'data' => [
+                'user_id' => $user_id,
+                'token' => $token
+            ]
+        ];
+        return $response;
+    }
 
-        //计算签名
-        $tmp_str=$str . $sign_token;
-        echo '</br>';
-        echo $tmp_str;echo '</br>';
-        $sign=sha1($tmp_str);
-        echo "签名结果: ".$sign;
-        echo '</br>';
-        $url = "http://api.1905.com/test?".$str.'&sign='.$sign;
-        echo $url;echo '</br>';
+    //生成用户token
+    protected function getToken($uid){
+        $token=md5(time().mt_rand(11111,99999).$uid);
+        return substr($token,5,20);
+    }
 
+    //获取用户信息接口
+    function userInfo(){
+        echo '<pre>';print_r($_GET);echo '</pre>';
     }
 
 
