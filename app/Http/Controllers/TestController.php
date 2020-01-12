@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\UserModel;
+use Illuminate\Support\Facades\Redis;
 class TestController extends Controller{
     function reg(Request $request){
         //echo '<pre>';print_r($_POST);echo '</pre>';
@@ -92,7 +93,11 @@ class TestController extends Controller{
                 return $response;
            }
         }
-        $token=$this->getToken($user_id);
+        $token=$this->getToken($user_id);//生成token
+        $redis_token_key='str:user:token: '.$user_id;
+        echo $redis_token_key;
+        Redis::set($redis_token_key,$token,86400);//生成token 设置过期时间
+
         $response = [
             'error' => 0,
             'msg' => 'ok',
@@ -103,19 +108,42 @@ class TestController extends Controller{
         ];
         return $response;
     }
-
     //生成用户token
     protected function getToken($uid){
         $token=md5(time().mt_rand(11111,99999).$uid);
         return substr($token,5,20);
     }
-
     //获取用户信息接口
-    function userInfo(){
-        echo '<pre>';print_r($_GET);echo '</pre>';
+    function showTime(){
+        if(empty($_SERVER['HTTP_TOKEN'])||empty($_SERVER['HTTP_UID'])){
+            $response=[
+                'error'=>40003,
+                'msg'=>'Token Not Valid!'
+            ];
+            return $response;
+        }
+        //获取客户端的token
+        $token=$_SERVER['HTTP_TOKEN'];
+        $user_id=$_SERVER['HTTP_UID'];
+        $redis_token_key='str:user:token: '.$user_id;
+        //验证token是否有效
+        $cache_token=Redis::get($redis_token_key);
+        if($token==$cache_token){//token有效
+            $data=date("Y-m-d H:i:s");
+            $response=[
+                'error'=>0,
+                'msg'=>'ok',
+                'data'=>$data
+            ];
+        }else{
+            $response=[
+                'error'=>40003,
+                'msg'=>'Token Not Valid!'
+            ];
+        }
+        return $response;
+        
     }
-
-
 
 }
  
