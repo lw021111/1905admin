@@ -7,12 +7,17 @@ use App\UserModel;
 use Illuminate\Support\Facades\Redis;
 class TestController extends Controller{
     function reg(Request $request){
+
         //echo '<pre>';print_r($_POST);echo '</pre>';
         $pass1=request()->input('pass1');
         $pass2=request()->input('pass2');
         //验证两次输入的密码
         if($pass1!=$pass2){
-            echo "两次输入的密码不一致";die;
+            $response = [
+                'error' => 500002,
+                'msg' => '两次输入的密码不一致'
+            ];
+            die(json_encode($response,JSON_UNESCAPED_UNICODE));
         }
         $user_name=request()->input('user_name');
         $user_email=request()->input('user_email');
@@ -59,6 +64,7 @@ class TestController extends Controller{
 
     function login(Request $request){
         $value=request()->input('user_name');
+        //dd($value);
         $user_pwd=request()->input('user_pwd');
         //按name找记录
         $u1=UserModel::where(['user_name'=>$value])->first();
@@ -95,7 +101,7 @@ class TestController extends Controller{
         }
         $token=$this->getToken($user_id);//生成token
         $redis_token_key='str:user:token: '.$user_id;
-        echo $redis_token_key;
+        //echo $redis_token_key;
         Redis::set($redis_token_key,$token,86400);//生成token 设置过期时间
 
         $response = [
@@ -118,7 +124,7 @@ class TestController extends Controller{
         if(empty($_SERVER['HTTP_TOKEN'])||empty($_SERVER['HTTP_UID'])){
             $response=[
                 'error'=>40003,
-                'msg'=>'Token Not Valid!'
+                'msg'=>'Need token or uid'
             ];
             return $response;
         }
@@ -128,6 +134,7 @@ class TestController extends Controller{
         $redis_token_key='str:user:token: '.$user_id;
         //验证token是否有效
         $cache_token=Redis::get($redis_token_key);
+        
         if($token==$cache_token){//token有效
             $data=date("Y-m-d H:i:s");
             $response=[
@@ -142,8 +149,38 @@ class TestController extends Controller{
             ];
         }
         return $response;
-        
     }
+
+    function auth(){
+        $uid=$_POST['uid'];
+        $token=$_POST['token'];
+        if(empty($_POST['uid'])||empty($_POST['token'])){
+            $response=[
+                'error'=>40003,
+                'msg'=>'Need token or uid'
+            ];
+            return $response;
+        }
+        $redis_token_key='str:user:token: '.$uid;
+        //验证token是否有效
+        $cache_token=Redis::get($redis_token_key);
+        
+        if($token==$cache_token){//token有效
+            
+            $response=[
+                'error'=>0,
+                'msg'=>'ok'
+                
+            ];
+        }else{
+            $response=[
+                'error'=>40003,
+                'msg'=>'Token Not Valid!'
+            ];
+        }
+        return $response;
+    }
+
 
 }
  

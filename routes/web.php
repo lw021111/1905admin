@@ -22,4 +22,5 @@ Route::get('/info', function () {
 Route::any('/reg','TestController@reg');
 Route::any('/login','TestController@login');
 Route::any('/time','TestController@showTime');//获取数据
+Route::any('/auth','TestController@auth');//鉴权
 
