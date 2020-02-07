@@ -162,15 +162,15 @@ class TestController extends Controller{
             return $response;
         }
         $redis_token_key='str:user:token: '.$uid;
+        //echo 'admin: ' . $redis_token_key;echo "</br>";;
         //验证token是否有效
         $cache_token=Redis::get($redis_token_key);
-        
+        //var_dump($cache_token);die;
         if($token==$cache_token){//token有效
             
             $response=[
                 'error'=>0,
-                'msg'=>'ok'
-                
+                'msg'=>'ok' 
             ];
         }else{
             $response=[
@@ -181,6 +181,29 @@ class TestController extends Controller{
         return $response;
     }
 
+    function check(){
+        echo "接收端>>>>>";echo "</br>";
+        echo '<pre>';print_r($_GET);echo '</pre>';
+
+        $key="1905";//计算签名的key 与发送端保持一致
+
+        //验签
+        $data=$_GET['data'];//接收到的数据
+        $signature=$_GET['signature'];//发送端的数据
+        echo "接收到的签名:".$signature;echo "</br>";
+        //计算签名
+        $s=md5($data.$key);
+        echo "接收端计算的签名:".$s;echo "</br>";
+
+        //与接收到的签名 比对
+        if($s==$signature){
+            echo "验证通过";
+        }else{
+            echo "验证失败";
+        }
+
+        echo "1111";
+    }
 
 }
  
