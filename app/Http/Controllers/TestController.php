@@ -205,5 +205,42 @@ class TestController extends Controller{
         echo "1111";
     }
 
+    public function md5test2()
+    {
+        $key = "yangtao";     
+
+        echo '<pre>';print_r($_POST);
+        $json_data = $_POST['data'];
+        $sign = $_POST['sign'];
+        //计算签名
+        $sign2 = md5($json_data.$key);
+        echo "接收端计算的签名：".$sign2;echo "<br>";
+
+        // 比较接收到的签名
+        if($sign2==$sign){
+            echo "验签成功";
+        }else{
+            echo "验签失败";
+        }
+    }
+
+    function decrypt(){
+        $data=base64_decode($_GET['data']); //接收加密的数据
+
+        echo '<hr>';
+        echo "接收到的数据密文: ".$data;
+
+        $method ='AES-256-CBC';
+        $key='1905api';
+        $iv='WUSD8796IDjhkchd';
+        //解密
+        $dec_data = openssl_decrypt($data, $method, $key,OPENSSL_RAW_DATA,$iv);
+        echo '解密数据:'.$dec_data;
+
+        $arr=json_decode($dec_data,true);
+        echo '<pre>';print_r($arr);echo '</pre>';
+
+    }
+
 }
  

@@ -24,4 +24,5 @@ Route::any('/login','TestController@login');
 Route::any('/time','TestController@showTime');//获取数据
 Route::any('/auth','TestController@auth');//鉴权
 Route::any('/check','TestController@check');
-
+Route::post('/test/md5test2','TestController@md5test2');//验证签名
+Route::any('/decrypt','TestController@decrypt');
